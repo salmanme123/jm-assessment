@@ -8,7 +8,7 @@ This assessment project builds a Vue 3 flight search interface for Journey Mento
 - Capturing core search criteria such as origin, destination, departure date, return date, passenger count, and cabin class.
 - Validating the form before submission, including required locations, different origin and destination, future departure dates, valid return dates, and at least one passenger.
 - Normalizing airport codes to uppercase before saving the submitted search.
-- Searching Duffel through a server-side API route so the Duffel access token stays off the client, querying every cabin class in parallel when "all" is selected.
+- Searching Duffel through a server-side API route so the Duffel access token stays off the client.
 - Storing the latest submitted search criteria, loading state, errors, and returned offers in a Pinia store.
 - Filtering results by cabin class, number of stops, and departure/arrival time ranges.
 - Sorting results by price (lowest or highest first) and paginating them.
