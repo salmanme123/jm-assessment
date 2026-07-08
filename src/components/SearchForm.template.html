@@ -30,29 +30,9 @@
   </div>
 
   <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.1fr_1.1fr_1fr_1fr_.8fr_.9fr_auto]">
-    <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
-      <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">From</span>
-      <select
-        v-model="form.origin"
-        class="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
-        name="origin"
-      >
-        <option v-for="option in airportOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-      </select>
-      <span v-if="errors.origin" class="mt-1 text-sm text-red-600">{{ errors.origin }}</span>
-    </label>
+    <AirportAutocomplete v-model="form.origin" label="From" name="origin" placeholder="e.g. London or LHR" :error="errors.origin" />
 
-    <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
-      <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">To</span>
-      <select
-        v-model="form.destination"
-        class="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
-        name="destination"
-      >
-        <option v-for="option in airportOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-      </select>
-      <span v-if="errors.destination" class="mt-1 text-sm text-red-600">{{ errors.destination }}</span>
-    </label>
+    <AirportAutocomplete v-model="form.destination" label="To" name="destination" placeholder="e.g. New York or JFK" :error="errors.destination" />
 
     <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
       <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Depart</span>
@@ -114,5 +94,26 @@
         {{ flightSearchStore.isLoading ? 'Searching...' : 'Search flights' }}
       </button>
     </div>
+  </div>
+
+  <div v-if="flightSearchStore.searchHistory.length > 0" class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Recent searches</span>
+    <button
+      v-for="(entry, index) in flightSearchStore.searchHistory"
+      :key="`${entry.searchedAt}-${index}`"
+      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+      type="button"
+      :disabled="flightSearchStore.isLoading"
+      @click="applyHistoryEntry(entry)"
+    >
+      {{ getHistoryLabel(entry) }}
+    </button>
+    <button
+      class="ml-auto text-xs font-medium text-slate-500 hover:text-red-600"
+      type="button"
+      @click="flightSearchStore.clearSearchHistory()"
+    >
+      Clear
+    </button>
   </div>
 </form>

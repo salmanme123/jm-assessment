@@ -154,6 +154,35 @@ function getSegmentCarrier(segment) {
   return segment?.operating_carrier?.name || segment?.marketing_carrier?.name || 'Airline unavailable'
 }
 
+function getOfferAirline(offer, firstSegment) {
+  return offer?.owner?.name || getSegmentCarrier(firstSegment)
+}
+
+function formatBaggageAllowance(segment) {
+  const baggages = segment?.passengers?.[0]?.baggages || []
+
+  if (baggages.length === 0) {
+    return 'Baggage allowance unavailable'
+  }
+
+  return baggages
+    .map((bag) => {
+      const quantity = Number(bag?.quantity) || 0
+      const label = bag?.type === 'checked' ? 'checked bag' : 'carry-on bag'
+
+      return `${quantity} ${label}${quantity === 1 ? '' : 's'}`
+    })
+    .join(', ')
+}
+
+function formatFareCondition(condition, allowedLabel, notAllowedLabel) {
+  if (!condition || typeof condition.allowed !== 'boolean') {
+    return 'Unavailable'
+  }
+
+  return condition.allowed ? allowedLabel : notAllowedLabel
+}
+
 function getAirportCode(airport) {
   return airport?.iata_code || airport?.iata_city_code || '---'
 }
@@ -182,7 +211,7 @@ function getTripType(sliceCount) {
   return 'Multi-city trip'
 }
 
-function mapSegment(segment) {
+function mapSegment(segment, layoverAfter) {
   const origin = getAirportCode(segment?.origin)
   const destination = getAirportCode(segment?.destination)
 
@@ -190,7 +219,30 @@ function mapSegment(segment) {
     route: `${origin} -> ${destination}`,
     time: `${formatDateTime(segment?.departing_at)} - ${formatDateTime(segment?.arriving_at)}`,
     airline: getSegmentCarrier(segment),
+    baggage: formatBaggageAllowance(segment),
+    layoverAfter,
   }
+}
+
+function formatLayoverDuration(currentSegment, nextSegment) {
+  if (!currentSegment?.arriving_at || !nextSegment?.departing_at) {
+    return null
+  }
+
+  const arrival = new Date(currentSegment.arriving_at)
+  const departure = new Date(nextSegment.departing_at)
+  const minutes = Math.round((departure.getTime() - arrival.getTime()) / 60000)
+
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    return null
+  }
+
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  const durationText = [hours ? `${hours}h` : '', remainingMinutes ? `${remainingMinutes}m` : ''].filter(Boolean).join(' ') || '0m'
+  const airport = getAirportCode(nextSegment?.origin)
+
+  return `${durationText} layover in ${airport}`
 }
 
 function mapSlice(slice, index, sliceCount) {
@@ -205,7 +257,7 @@ function mapSlice(slice, index, sliceCount) {
     route: `${origin} -> ${destination}`,
     duration: formatDuration(slice?.duration),
     stops: formatStops(segments.length),
-    segments: segments.map(mapSegment),
+    segments: segments.map((segment, segmentIndex) => mapSegment(segment, formatLayoverDuration(segment, segments[segmentIndex + 1]))),
   }
 }
 
@@ -221,7 +273,7 @@ function mapOffer(offer, cabinClass) {
 
   return {
     id: offer.id,
-    airline: getSegmentCarrier(firstSegment),
+    airline: getOfferAirline(offer, firstSegment),
     route: route || 'Route unavailable',
     time: `${formatDateTime(firstSegment.departing_at)} - ${formatDateTime(lastSegment.arriving_at)}`,
     departureDepartingAt: firstSegment.departing_at || '',
@@ -232,6 +284,11 @@ function mapOffer(offer, cabinClass) {
     cabinClass,
     price: `${offer.total_currency || ''} ${offer.total_amount || ''}`.trim() || 'Price unavailable',
     details: `${slices.length} ${slices.length === 1 ? 'journey' : 'journeys'}, ${totalSegmentCount} ${totalSegmentCount === 1 ? 'flight' : 'flights'}`,
+    baggage: formatBaggageAllowance(firstSegment),
+    fareConditions: {
+      refundable: formatFareCondition(offer?.conditions?.refund_before_departure, 'Refundable', 'Non-refundable'),
+      changeable: formatFareCondition(offer?.conditions?.change_before_departure, 'Changeable', 'Non-changeable'),
+    },
     slices: mappedSlices,
   }
 }
@@ -299,3 +356,4 @@ export default async function handler(request, response) {
     })
   }
 }
+

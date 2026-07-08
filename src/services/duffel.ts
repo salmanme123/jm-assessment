@@ -1,4 +1,4 @@
-import type { DuffelOffersResponse, SearchCriteria } from '../types/flight'
+import type { DuffelOffersResponse, PlaceSuggestion, PlaceSuggestionsResponse, SearchCriteria } from '../types/flight'
 
 export async function searchDuffelOffers(criteria: SearchCriteria): Promise<DuffelOffersResponse> {
   const response = await fetch('/api/duffel-offers', {
@@ -18,4 +18,15 @@ export async function searchDuffelOffers(criteria: SearchCriteria): Promise<Duff
   return {
     offers: payload?.offers ?? [],
   }
+}
+
+export async function searchPlaceSuggestions(query: string): Promise<PlaceSuggestion[]> {
+  const response = await fetch(`/api/duffel-places?query=${encodeURIComponent(query)}`)
+  const payload = await response.json().catch(() => null) as Partial<PlaceSuggestionsResponse> & { error?: string } | null
+
+  if (!response.ok) {
+    throw new Error(payload?.error || 'Unable to fetch place suggestions right now.')
+  }
+
+  return payload?.places ?? []
 }

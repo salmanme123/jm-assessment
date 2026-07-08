@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { airportOptions, cabinClassOptions, type SearchCriteria } from '../types/flight'
+import { cabinClassOptions, type SearchCriteria, type SearchHistoryEntry } from '../types/flight'
 import { useFlightSearchStore } from '../stores/flightSearchStore'
+import AirportAutocomplete from './AirportAutocomplete.vue'
 
 const flightSearchStore = useFlightSearchStore()
-const tripType = ref<'one_way' | 'round_trip'>('round_trip')
+const persistedCriteria = flightSearchStore.criteria
+const tripType = ref<'one_way' | 'round_trip'>(persistedCriteria?.returnDate ? 'round_trip' : 'one_way')
 
 const form = reactive<SearchCriteria>({
-  origin: 'LHR',
-  destination: 'JFK',
-  departureDate: '2026-08-15',
-  returnDate: '2026-08-18',
-  passengerCount: 1,
-  cabinClass: 'economy',
+  origin: persistedCriteria?.origin ?? 'LHR',
+  destination: persistedCriteria?.destination ?? 'JFK',
+  departureDate: persistedCriteria?.departureDate ?? '2026-08-15',
+  returnDate: persistedCriteria?.returnDate ?? '2026-08-18',
+  passengerCount: persistedCriteria?.passengerCount ?? 1,
+  cabinClass: persistedCriteria?.cabinClass ?? 'economy',
 })
 
 const errors = reactive<Partial<Record<keyof SearchCriteria, string>>>({})
@@ -90,10 +92,39 @@ watch(tripType, (nextTripType) => {
   }
 })
 
+watch(
+  () => flightSearchStore.criteria,
+  (criteria) => {
+    if (!criteria) {
+      return
+    }
+
+    form.origin = criteria.origin
+    form.destination = criteria.destination
+    form.departureDate = criteria.departureDate
+    form.returnDate = criteria.returnDate
+    form.passengerCount = criteria.passengerCount
+    form.cabinClass = criteria.cabinClass
+    tripType.value = criteria.returnDate ? 'round_trip' : 'one_way'
+  },
+)
+
+function getHistoryLabel(entry: SearchHistoryEntry) {
+  const dateLabel = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${entry.criteria.departureDate}T00:00:00`))
+
+  return `${entry.criteria.origin} -> ${entry.criteria.destination}, ${dateLabel}`
+}
+
+function applyHistoryEntry(entry: SearchHistoryEntry) {
+  flightSearchStore.searchFlights(entry.criteria)
+}
+
 void handleSubmit
 void tripType
 void cabinClassOptions
-void airportOptions
+void AirportAutocomplete
+void getHistoryLabel
+void applyHistoryEntry
 </script>
 
 <template src="./SearchForm.template.html"></template>
