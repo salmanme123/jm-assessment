@@ -1,17 +1,18 @@
-﻿<script setup lang="ts">
-import { computed, reactive } from 'vue'
+<script setup lang="ts">
+import { computed, reactive, ref, watch } from 'vue'
 import type { SearchCriteria } from '../types/flight'
 import { useFlightSearchStore } from '../stores/flightSearchStore'
 
 const flightSearchStore = useFlightSearchStore()
+const tripType = ref<'one_way' | 'round_trip'>('round_trip')
 
 const form = reactive<SearchCriteria>({
   origin: 'LHR',
   destination: 'JFK',
   departureDate: '2026-08-15',
-  returnDate: '',
+  returnDate: '2026-08-18',
   passengerCount: 1,
-  cabinClass: 'economy',
+  cabinClass: 'all',
 })
 
 const errors = reactive<Partial<Record<keyof SearchCriteria, string>>>({})
@@ -28,7 +29,6 @@ function validateForm() {
   errors.departureDate = ''
   errors.returnDate = ''
   errors.passengerCount = ''
-  errors.cabinClass = ''
 
   const origin = normalizeAirportCode(form.origin)
   const destination = normalizeAirportCode(form.destination)
@@ -51,7 +51,9 @@ function validateForm() {
     errors.departureDate = 'Departure date cannot be in the past.'
   }
 
-  if (form.returnDate && form.departureDate && form.returnDate < form.departureDate) {
+  if (tripType.value === 'round_trip' && !form.returnDate) {
+    errors.returnDate = 'Return date is required for round trips.'
+  } else if (form.returnDate && form.departureDate && form.returnDate < form.departureDate) {
     errors.returnDate = 'Return date cannot be before departure date.'
   }
 
@@ -59,30 +61,37 @@ function validateForm() {
     errors.passengerCount = 'At least one passenger is required.'
   }
 
-  if (!form.cabinClass) {
-    errors.cabinClass = 'Cabin class is required.'
-  }
 
   return !Object.values(errors).some(Boolean)
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   if (!validateForm()) {
     return
   }
 
-  flightSearchStore.setCriteria({
+  await flightSearchStore.searchFlights({
     ...form,
     origin: normalizeAirportCode(form.origin),
     destination: normalizeAirportCode(form.destination),
+    returnDate: tripType.value === 'round_trip' ? form.returnDate : '',
     passengerCount: Number(form.passengerCount),
   })
-
 }
 
+watch(tripType, (nextTripType) => {
+  if (nextTripType === 'one_way') {
+    form.returnDate = ''
+    return
+  }
+
+  if (!form.returnDate) {
+    form.returnDate = form.departureDate
+  }
+})
+
 void handleSubmit
+void tripType
 </script>
 
 <template src="./SearchForm.template.html"></template>
-
-
