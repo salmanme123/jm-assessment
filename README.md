@@ -14,6 +14,11 @@ This assessment project builds a Vue 3 flight search interface for Journey Mento
 - Sorting results by price (lowest or highest first) and paginating them.
 - Showing a details view for a selected offer with its full trip breakdown by slice and flight segment.
 
+## Why Cabin Class Is on the Search Form
+
+The "Find available flights" form includes a **Cabin** field so every search is scoped to a single cabin class (economy, premium economy, business, or first) instead of firing one parallel Duffel request per cabin class.
+This keeps each search to a single Duffel request, which previously ran the API route out of memory on Vercel's free plan when searching all cabin classes at once.
+
 ## Duffel Setup
 
 You need a Duffel access token to run this project locally. Create one and add it as a server-side environment variable in `.env.local`:

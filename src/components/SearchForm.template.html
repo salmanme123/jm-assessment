@@ -29,30 +29,28 @@
     </div>
   </div>
 
-  <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.1fr_1.1fr_1fr_1fr_.8fr_auto]">
+  <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.1fr_1.1fr_1fr_1fr_.8fr_.9fr_auto]">
     <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
       <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">From</span>
-      <input
+      <select
         v-model="form.origin"
-        class="mt-2 w-full bg-transparent text-2xl font-semibold uppercase tracking-wide text-slate-950 outline-none placeholder:text-slate-300"
-        maxlength="3"
+        class="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
         name="origin"
-        placeholder="LHR"
-        type="text"
-      />
+      >
+        <option v-for="option in airportOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+      </select>
       <span v-if="errors.origin" class="mt-1 text-sm text-red-600">{{ errors.origin }}</span>
     </label>
 
     <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
       <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">To</span>
-      <input
+      <select
         v-model="form.destination"
-        class="mt-2 w-full bg-transparent text-2xl font-semibold uppercase tracking-wide text-slate-950 outline-none placeholder:text-slate-300"
-        maxlength="3"
+        class="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
         name="destination"
-        placeholder="JFK"
-        type="text"
-      />
+      >
+        <option v-for="option in airportOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+      </select>
       <span v-if="errors.destination" class="mt-1 text-sm text-red-600">{{ errors.destination }}</span>
     </label>
 
@@ -96,6 +94,16 @@
       <span v-if="errors.passengerCount" class="mt-1 text-sm text-red-600">{{ errors.passengerCount }}</span>
     </label>
 
+    <label class="flex min-h-24 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-sky-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-100">
+      <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cabin</span>
+      <select
+        v-model="form.cabinClass"
+        class="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
+        name="cabinClass"
+      >
+        <option v-for="option in cabinClassOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+      </select>
+    </label>
 
     <div class="flex min-h-24 items-stretch md:col-span-2 xl:col-span-1">
       <button

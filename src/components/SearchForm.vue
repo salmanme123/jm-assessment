@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import type { SearchCriteria } from '../types/flight'
+import { airportOptions, cabinClassOptions, type SearchCriteria } from '../types/flight'
 import { useFlightSearchStore } from '../stores/flightSearchStore'
 
 const flightSearchStore = useFlightSearchStore()
@@ -12,7 +12,7 @@ const form = reactive<SearchCriteria>({
   departureDate: '2026-08-15',
   returnDate: '2026-08-18',
   passengerCount: 1,
-  cabinClass: 'all',
+  cabinClass: 'economy',
 })
 
 const errors = reactive<Partial<Record<keyof SearchCriteria, string>>>({})
@@ -92,6 +92,8 @@ watch(tripType, (nextTripType) => {
 
 void handleSubmit
 void tripType
+void cabinClassOptions
+void airportOptions
 </script>
 
 <template src="./SearchForm.template.html"></template>

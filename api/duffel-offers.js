@@ -281,19 +281,18 @@ export default async function handler(request, response) {
         throw error
       }
 
-      return (payload?.data?.offers || []).map((offer) => ({ offer, cabinClass }))
+      return (payload?.data?.offers || []).map((offer) => ({
+        mappedOffer: mapOffer(offer, cabinClass),
+        totalAmount: Number(offer?.total_amount || Number.POSITIVE_INFINITY),
+      }))
     }))
 
-    const rawOffers = offerGroups.flat().sort((left, right) => {
-      const leftAmount = Number(left.offer?.total_amount || Number.POSITIVE_INFINITY)
-      const rightAmount = Number(right.offer?.total_amount || Number.POSITIVE_INFINITY)
+    const offers = offerGroups
+      .flat()
+      .sort((left, right) => left.totalAmount - right.totalAmount)
+      .map(({ mappedOffer }) => mappedOffer)
 
-      return leftAmount - rightAmount
-    })
-
-    json(response, 200, {
-      offers: rawOffers.map(({ offer, cabinClass }) => mapOffer(offer, cabinClass)),
-    })
+    json(response, 200, { offers })
   } catch (error) {
     json(response, error?.statusCode || 500, {
       error: error instanceof Error ? error.message : 'Unable to connect to Duffel.',

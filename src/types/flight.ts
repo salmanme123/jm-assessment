@@ -50,3 +50,14 @@ export const cabinClassOptions: Array<{ label: string; value: CabinClass }> = [
   { label: 'Business', value: 'business' },
   { label: 'First', value: 'first' },
 ]
+
+export const airportOptions: Array<{ label: string; value: string }> = [
+  { label: 'LHR - London Heathrow', value: 'LHR' },
+  { label: 'JFK - New York', value: 'JFK' },
+  { label: 'DXB - Dubai', value: 'DXB' },
+  { label: 'SIN - Singapore Changi', value: 'SIN' },
+  { label: 'LAX - Los Angeles', value: 'LAX' },
+  { label: 'CDG - Paris', value: 'CDG' },
+  { label: 'HKG - Hong Kong', value: 'HKG' },
+  { label: 'SYD - Sydney', value: 'SYD' },
+]
